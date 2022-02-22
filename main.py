@@ -45,10 +45,16 @@ for i in range(0, black_card_count):
 # Game variables
 player_num = 5
 hand_size = 10
+players = []
 
 # TODO make gamevars input()
-# TODO write Player classes
 # TODO write function to populate classes for each card
 # TODO write Card class
 # TODO write main game loop
 # TODO write AI players
+
+# Player setup
+for i in range (1, player_num):
+    players[i] = Player(True, 0, False, input("What is your name?"))
+
+# Main game loop
