@@ -45,8 +45,8 @@ class Entry:
 
 
 # Card loader and settings
-white_card_count = 188
-black_card_count = 103
+white_card_count = 231
+black_card_count = 116
 white_card_column = 1
 black_card_column = 2
 option_column = 3
@@ -100,6 +100,7 @@ players = []
 for i in range(0, player_num):
     print("Player", i)
     players.append(Player(i, True, 0, False, input("What is your name?")))
+czar_counter = 0
 clearscreen()
 
 input("Press enter to begin the game.")
@@ -124,7 +125,9 @@ while True:
     print("Welcome to Round", rounds)
 
     # add czar
-    czar_pick = random.choice(players)
+    czar_pick = players[czar_counter]
+    if czar_counter >= (len(players)-1):
+        czar_counter = 0
     czar_pick.czar = True
     print(czar_pick.name, "is the Card Czar this round!")
 
@@ -147,7 +150,7 @@ while True:
             while entry_count < black_pick.pc:
                 print(black_pick.text)
                 for x in range(0, len(active_player.hand)):
-                    print("Card", x, active_player.hand[x].text)
+                    print("Card", x, "-", active_player.hand[x].text)
                 print("Please select a card. This is Entry", entry_count + 1, "of", black_pick.pc)
                 pick = 0
                 while True:
@@ -163,14 +166,21 @@ while True:
                 clearscreen()
 
     random.shuffle(entries)
+    clearscreen()
     print(czar_pick.name, ", it's time to pick the winner!")
     print(black_pick.text)
     for i in range(0, len(entries)):
-        print("Entry", i, "- ", str(entries[i].play))
-    winner = int(input())
+        print("Entry", i, "- " + ", ".join(entries[i].play))
+    winner = 0
+    while True:
+        try:
+            winner = int(input())
+        except(TypeError, ValueError):
+            continue
+        break
     winning_card = entries[winner].play
     winning_player = entries[winner].pb
-    print(winning_player.name, "won this round with ", winning_card)
+    print(winning_player.name, "won this round with: " + ", ".join(winning_card))
     winning_player.add_score()
     print("Scores:")
     for i in range(0, len(players)):
