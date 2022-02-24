@@ -128,6 +128,8 @@ while True:
     czar_pick = players[czar_counter]
     if czar_counter >= (len(players)-1):
         czar_counter = 0
+    else:
+        czar_counter += 1
     czar_pick.czar = True
     print(czar_pick.name, "is the Card Czar this round!")
 
