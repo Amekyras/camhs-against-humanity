@@ -1,10 +1,31 @@
 import openpyxl
 import random
 import os
+from gtts import gTTS
+from playsound import playsound
+import glob
+import time
 
 
 def clearscreen():
     os.system('cls' if os.name == 'nt' else 'clear')
+
+
+def prep_black(black):
+    prepb = black.text.replace("______", "BLANK")
+    tts = gTTS(prepb, lang="en", tld="co.uk")
+    tts.save("black.mp3")
+
+
+def prep_white(black, whites):
+    prepw = ""
+    prepb = black.text.replace("______", "BLANK")
+    if "BLANK" not in prepb:
+        prepb = prepb + " BLANK"
+    for j in range(0, black.pc):
+        prepw = prepb.replace("BLANK", whites.play[j], 1)
+    tts = gTTS(prepw, lang="en", tld="co.uk")
+    tts.save(f"{str(whites.pb.name)}.mp3")
 
 
 class Card:
@@ -15,6 +36,11 @@ class Card:
         self.text = card_text
 
 
+def prep_winner(name):
+    tts = gTTS(f"{name} won this round with.", lang="en", tld="co.uk")
+    tts.save(f"{name}win.mp3")
+
+
 class Player:
     def __init__(self, player_id, player_is_human, player_score, player_is_czar, player_name):
         self.id = player_id
@@ -23,6 +49,7 @@ class Player:
         self.czar = player_is_czar
         self.name = player_name
         self.hand = []
+        prep_winner(player_name)
 
     def add_score(self):
         self.score += 1
@@ -67,6 +94,13 @@ for i in range(0, black_card_count):
     black_cards_fresh.append(Card("Black", str(i) + "B", card_sheet.cell(row=i + start_row, column=option_column).value,
                                   card_sheet.cell(row=i + start_row, column=black_card_column).value))
 
+# Cleanup MP3s from last run
+globs = glob.glob("*.mp3")
+while len(globs) > 0:
+    os.remove(globs[0])
+    globs = glob.glob("*.mp3")
+
+
 # Start game
 print("Welcome to CAMHS Against Humanity! "
       "\nCards written by the inmates of Cotswold Spa Hospital and associates"
@@ -77,10 +111,11 @@ print("Welcome to CAMHS Against Humanity! "
 player_num = 3
 hand_size = 10
 rounds = 0
+speaker = True
 while True:
     try:
         player_num = int(input("How many people are playing?"))
-    except TypeError:
+    except (TypeError, ValueError):
         continue
     if player_num < 3:
         continue
@@ -89,7 +124,7 @@ while True:
 while True:
     try:
         hand_size = int(input("How many cards in a hand?"))
-    except TypeError:
+    except (TypeError, ValueError):
         continue
     break
 white_cards = white_cards_fresh.copy()
@@ -122,7 +157,7 @@ while True:
     # Round Counter
     rounds += 1
     clearscreen()
-    print("Welcome to Round", rounds)
+    print(f"Welcome to Round {rounds}")
 
     # add czar
     czar_pick = players[czar_counter]
@@ -131,13 +166,14 @@ while True:
     else:
         czar_counter += 1
     czar_pick.czar = True
-    print(czar_pick.name, "is the Card Czar this round!")
+    print(f"{czar_pick.name} is the Card Czar this round!")
 
     # pick black card
     black_pick = black_cards.pop(random.randint(0, len(black_cards)))
-    print("This round's prompt is\n",
-          black_pick.text,
-          "\nThis card has", black_pick.pc, "prompt(s)")
+    prep_black(black_pick)
+    print(f"This round's prompt is\n"
+          f"{black_pick.text}"
+          f"\nThis card has {black_pick.pc} prompt(s)")
 
     # Round
     entries = []
@@ -146,18 +182,21 @@ while True:
         if active_player.czar is False:
             entry_count = 0
             # Play loop
-            print(active_player.name, ", it's your turn! Press enter to continue.")
+            print(f"{active_player.name}, it's your turn! Press enter to continue.")
             input()
             clearscreen()
             while entry_count < black_pick.pc:
                 print(black_pick.text)
                 for x in range(0, len(active_player.hand)):
-                    print("Card", x, "-", active_player.hand[x].text)
-                print("Please select a card. This is Entry", entry_count + 1, "of", black_pick.pc)
+                    print(f"Card {x} - {active_player.hand[x].text}")
+                print(f"Please select a card. This is Entry {entry_count + 1} of {black_pick.pc}")
                 pick = 0
                 while True:
                     try:
                         pick = int(input())
+                        if pick > (len(active_player.hand)-1):
+                            print("Invalid input")
+                            continue
                     except (TypeError, ValueError):
                         continue
                     break
@@ -166,13 +205,18 @@ while True:
                     entries.append(Entry(active_player))
                 entries[-1].enter(pick)
                 clearscreen()
+            prep_white(black_pick, entries[-1])
 
     random.shuffle(entries)
     clearscreen()
-    print(czar_pick.name, ", it's time to pick the winner!")
+    print(f"{czar_pick.name}, it's time to pick the winner!")
     print(black_pick.text)
     for i in range(0, len(entries)):
-        print("Entry", i, "- " + ", ".join(entries[i].play))
+        print(f"Entry {i} - " + ", ".join(entries[i].play))
+    # GENERATE TTS HERE
+    for i in range(0, len(entries)):
+        playsound(f"{entries[i].pb.name}.mp3")
+        time.sleep(0.1)
     winner = 0
     while True:
         try:
@@ -182,9 +226,12 @@ while True:
         break
     winning_card = entries[winner].play
     winning_player = entries[winner].pb
+    playsound(f"{winning_player.name}win.mp3")
+    playsound(f"{winning_player.name}.mp3")
     print(winning_player.name, "won this round with: " + ", ".join(winning_card))
     winning_player.add_score()
     print("Scores:")
     for i in range(0, len(players)):
-        print(players[i].name, ": ", players[i].score)
+        print(f"{players[i].name} :  {players[i].score}")
+
     input("Press enter to begin the next round.")
