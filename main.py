@@ -49,7 +49,8 @@ class Player:
         self.czar = player_is_czar
         self.name = player_name
         self.hand = []
-        prep_winner(player_name)
+        if speaker:
+            prep_winner(player_name)
 
     def add_score(self):
         self.score += 1
