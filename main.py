@@ -111,7 +111,6 @@ print("Welcome to CAMHS Against Humanity! "
 player_num = 3
 hand_size = 10
 rounds = 0
-speaker = True
 while True:
     try:
         player_num = int(input("How many people are playing?"))
@@ -127,6 +126,20 @@ while True:
     except (TypeError, ValueError):
         continue
     break
+
+speaker_prompt = ""
+while True:
+    try:
+        speaker_prompt = input("Would you like to enable TTS?")
+    except (TypeError, ValueError):
+        continue
+    break
+
+affirm = ["", "Yes", "yes", "Y", "y"]
+if speaker_prompt in affirm:
+    speaker = True
+else:
+    speaker = False
 white_cards = white_cards_fresh.copy()
 black_cards = black_cards_fresh.copy()
 
@@ -170,7 +183,8 @@ while True:
 
     # pick black card
     black_pick = black_cards.pop(random.randint(0, len(black_cards)))
-    prep_black(black_pick)
+    if speaker:
+        prep_black(black_pick)
     print(f"This round's prompt is\n"
           f"{black_pick.text}"
           f"\nThis card has {black_pick.pc} prompt(s)")
@@ -205,7 +219,8 @@ while True:
                     entries.append(Entry(active_player))
                 entries[-1].enter(pick)
                 clearscreen()
-            prep_white(black_pick, entries[-1])
+            if speaker:
+                prep_white(black_pick, entries[-1])
 
     random.shuffle(entries)
     clearscreen()
@@ -214,9 +229,10 @@ while True:
     for i in range(0, len(entries)):
         print(f"Entry {i} - " + ", ".join(entries[i].play))
     # GENERATE TTS HERE
-    for i in range(0, len(entries)):
-        playsound(f"{entries[i].pb.name}.mp3")
-        time.sleep(0.1)
+    if speaker:
+        for i in range(0, len(entries)):
+            playsound(f"{entries[i].pb.name}.mp3")
+            time.sleep(0.1)
     winner = 0
     while True:
         try:
@@ -226,8 +242,9 @@ while True:
         break
     winning_card = entries[winner].play
     winning_player = entries[winner].pb
-    playsound(f"{winning_player.name}win.mp3")
-    playsound(f"{winning_player.name}.mp3")
+    if speaker:
+        playsound(f"{winning_player.name}win.mp3")
+        playsound(f"{winning_player.name}.mp3")
     print(winning_player.name, "won this round with: " + ", ".join(winning_card))
     winning_player.add_score()
     print("Scores:")
