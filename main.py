@@ -251,5 +251,6 @@ while True:
     print("Scores:")
     for i in range(0, len(players)):
         print(f"{players[i].name} :  {players[i].score}")
-
+    for i in range(0, len(players)):
+        os.remove(f"{players[i].name}.mp3")
     input("Press enter to begin the next round.")
