@@ -5,6 +5,12 @@ from gtts import gTTS
 from playsound import playsound
 import glob
 import time
+from gtts.tokenizer import pre_processors
+import gtts.tokenizer.symbols
+
+gtts.tokenizer.symbols.SUB_PAIRS.extend([("ED", "E.D"), ("ECG", "E.C.G"), ("CBT", "C.B.T"), ("OT", "O.T"),
+                                        ("NG", "N.G"), ("CPA", "C.P.A"), ("PTSD", "P.T.S.D"), ("ADHD", "A.D.H.D"),
+                                        ("PMO", "P.M.O")])
 
 
 def clearscreen():
@@ -13,7 +19,8 @@ def clearscreen():
 
 def prep_black(black):
     prepb = black.text.replace("______", "BLANK")
-    tts = gTTS(prepb, lang="en", tld="co.uk")
+    prepbt = pre_processors.word_sub(prepb)
+    tts = gTTS(prepbt, lang="en", tld="co.uk")
     tts.save("black.mp3")
 
 
@@ -24,7 +31,8 @@ def prep_white(black, whites):
         prepb = prepb + " BLANK"
     for j in range(0, black.pc):
         prepw = prepb.replace("BLANK", whites.play[j], 1)
-    tts = gTTS(prepw, lang="en", tld="co.uk")
+    prepwt = pre_processors.word_sub(prepw)
+    tts = gTTS(prepwt, lang="en", tld="co.uk")
     tts.save(f"{str(whites.pb.name)}.mp3")
 
 
@@ -225,6 +233,7 @@ while True:
 
     random.shuffle(entries)
     clearscreen()
+    input(f"{czar_pick.name}, press enter to reveal entries")
     print(f"{czar_pick.name}, it's time to pick the winner!")
     print(black_pick.text)
     for i in range(0, len(entries)):
@@ -251,6 +260,10 @@ while True:
     print("Scores:")
     for i in range(0, len(players)):
         print(f"{players[i].name} :  {players[i].score}")
-    for i in range(0, len(players)):
-        os.remove(f"{players[i].name}.mp3")
+    if speaker is True:
+        try:
+            for i in range(0, len(players)):
+                os.remove(f"{players[i].name}.mp3")
+        except FileNotFoundError:
+            pass
     input("Press enter to begin the next round.")
