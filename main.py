@@ -260,7 +260,7 @@ while True:
     print("Scores:")
     for i in range(0, len(players)):
         print(f"{players[i].name} :  {players[i].score}")
-    if speaker is True:
+    if speaker:
         try:
             for i in range(0, len(players)):
                 os.remove(f"{players[i].name}.mp3")
